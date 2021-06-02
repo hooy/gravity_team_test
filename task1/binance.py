@@ -27,7 +27,7 @@ class PublicBinance(AbstractAsyncApiConsumer):
         print(f"{'=' * 10}Connected to Binance!{'=' * 10}")
 
     def _process_prices(self, data):
-        best_bid, best_ask = data["b"], data["a"]
+        best_bid, best_ask = float(data["b"]), float(data["a"])
         self._check_and_update_ask(best_ask)
         self._check_and_update_bid(best_bid)
         self.print_current_best_prices()
@@ -43,16 +43,14 @@ class PublicBinance(AbstractAsyncApiConsumer):
 
         print(f"Highest bid: {bid} at {bid_time}; Lowest ask: {ask} at {ask_time}")
 
-    def _check_and_update_ask(self, best_ask: object):
-        ask = float(best_ask)
-        if ask < self.lowest_ask["price"]:
-            self.lowest_ask["price"] = ask
+    def _check_and_update_ask(self, best_ask: float):
+        if best_ask < self.lowest_ask["price"]:
+            self.lowest_ask["price"] = best_ask
             self.lowest_ask["time"] = time.time()
 
-    def _check_and_update_bid(self, best_bid: object):
-        bid = float(best_bid)
-        if bid > self.highest_bid["price"]:
-            self.highest_bid["price"] = bid
+    def _check_and_update_bid(self, best_bid: float):
+        if best_bid > self.highest_bid["price"]:
+            self.highest_bid["price"] = best_bid
             self.highest_bid["time"] = time.time()
 
     def get_loop(self):
