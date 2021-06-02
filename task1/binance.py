@@ -1,17 +1,27 @@
-from task1.common import loop
+import asyncio
+import logging
 from task1.websocket import WebSocketBase
 
 
 class PublicBinance:
-    exchange = 'binance'
+    exchange = "binance"
 
     def __init__(self):
-        loop.run_until_complete(self.async_init())
+        loop = asyncio.new_event_loop()
+        loop.create_task(self.init(loop))
+        loop.run_forever()
 
-    async def async_init(self):
-        WebSocketBase('binance_public', self.ws_connect_public, self.ws_on_message)
+    async def init(self, loop):
+        uri = "wss://stream.binance.com:9443/ws/btcusdt@ticker"
+        WebSocketBase("binance_public", loop, uri, self._ws_connect_public, self._ws_on_message)
+
+    def _ws_connect_public(self):
+        logging.info(f"_ws_connect_public {self.exchange}")
+
+    def _ws_on_message(self, data):
+        print(data)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # logging.getLogger().setLevel(logging.DEBUG)
     binance = PublicBinance()
-    loop.run_forever()
