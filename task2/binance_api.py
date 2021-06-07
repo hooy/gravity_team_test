@@ -1,3 +1,4 @@
+import collections
 import logging
 from asyncio import AbstractEventLoop
 from typing import Dict, AnyStr
@@ -39,14 +40,19 @@ class BinanceAPI:
         params = {
             "timestamp": self.__get_time() + self.offset,
         }
-        return await self._get(uri=ACCOUNT_URL, data=params)
+        return await self._get(uri=ACCOUNT_URL, data=params, signature_needed=True)
 
     def _generate_signature(self, data: Dict) -> AnyStr:
-        query_string = "&".join([f"{d[0]}={d[1]}" for d in data])
+        query_string = self._prepare_query_string(data)
         m = hmac.new(
             self.SECRET.encode("utf-8"), query_string.encode("utf-8"), hashlib.sha256
         )
         return m.hexdigest()
+
+    @staticmethod
+    def _prepare_query_string(data: Dict) -> AnyStr:
+        ordered_data = collections.OrderedDict(sorted(data.items()))
+        return "&".join([f"{d[0]}={d[1]}" for d in ordered_data.items()])
 
     def _append_signature(self, data: Dict) -> Dict:
         data["signature"] = self._generate_signature(data)
@@ -61,7 +67,6 @@ class BinanceAPI:
         async with self.aio_session.get(uri, params=data) as resp:
             try:
                 json_response = await resp.json()
-                print(resp.headers)
                 return json_response
             except ValueError:
                 msg = await resp.text()
