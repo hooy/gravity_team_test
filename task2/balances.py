@@ -10,6 +10,7 @@ async def main():
     # print(server_time)
 
     await binance_api.init()
+    print(await binance_api.get_account_info())
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)

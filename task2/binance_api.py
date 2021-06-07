@@ -35,6 +35,12 @@ class BinanceAPI:
     async def get_server_time(self):
         return await self._get(uri=TIME_URL, data={})
 
+    async def get_account_info(self):
+        params = {
+            "timestamp": self.__get_time() + self.offset,
+        }
+        return await self._get(uri=ACCOUNT_URL, data=params)
+
     def _generate_signature(self, data: Dict) -> AnyStr:
         query_string = "&".join([f"{d[0]}={d[1]}" for d in data])
         m = hmac.new(
@@ -46,21 +52,20 @@ class BinanceAPI:
         data["signature"] = self._generate_signature(data)
         return data
 
-    async def _get_account_info(self):
-        params = {
-            "timestamp": self.__get_time() + self.offset,
-        }
-        pass
-
     def __get_time(self) -> int:
         return int(time.time() * 1000)
 
     async def _get(self, uri: AnyStr, data: Dict, signature_needed=False):
         if signature_needed:
             data = self._append_signature(data)
-        async with self.aio_session as session:
-            async with session.get(uri, params=data) as resp:
-                return await resp.json()
+        async with self.aio_session.get(uri, params=data) as resp:
+            try:
+                json_response = await resp.json()
+                print(resp.headers)
+                return json_response
+            except ValueError:
+                msg = await resp.text()
+                logging.critical(f"Invalid Response: {msg}")
 
     def _calculate_offset(self, server_time) -> int:
         return server_time - self.__get_time()
