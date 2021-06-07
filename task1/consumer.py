@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractAsyncApiConsumer:
+class AbstractAsyncApiConsumer(ABC):
     @abstractmethod
     def get_loop(self):
         pass

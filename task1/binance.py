@@ -1,7 +1,6 @@
 import asyncio
 import datetime
 import logging
-import string
 import time
 from task1.consumer import AbstractAsyncApiConsumer
 from task1.websocket import WebSocketBase
@@ -17,7 +16,7 @@ INTRO = f"{'=' * 10}Connected to Binance!{'=' * 10}"
 class PublicBinance(AbstractAsyncApiConsumer):
     exchange = "binance"
 
-    def __init__(self, uri: string, print_only_updates: bool = False):
+    def __init__(self, uri: str, print_only_updates: bool = False):
         self.uri = uri
         self.print_only_updates = print_only_updates
         self.updated = 0b00  # first bit -- bid updated, second bit -- ask updated
