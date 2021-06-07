@@ -1,3 +1,5 @@
+from typing import AnyStr
+
 import json
 import logging
 
@@ -9,7 +11,7 @@ EXTRA_HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 
 class WebSocketBase:
-    def __init__(self, name: str, manager: AbstractAsyncApiConsumer):
+    def __init__(self, name: AnyStr, manager: AbstractAsyncApiConsumer):
         """
         Base class to register socket and map callbacks
         """

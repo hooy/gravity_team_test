@@ -1,3 +1,5 @@
+from typing import AnyStr, Dict
+
 import asyncio
 import datetime
 import logging
@@ -18,7 +20,7 @@ INTRO = f"{'=' * 10}Connected to Binance!{'=' * 10}"
 class PublicBinance(AbstractAsyncApiConsumer):
     exchange = "binance"
 
-    def __init__(self, uri: str, print_only_updates: bool = False):
+    def __init__(self, uri: AnyStr, print_only_updates: bool = False):
         self.uri = uri
         self.print_only_updates = print_only_updates
         self.updated = 0b00  # first bit -- bid updated, second bit -- ask updated
@@ -35,7 +37,7 @@ class PublicBinance(AbstractAsyncApiConsumer):
         logging.info(f"_ws_connect_public {self.exchange}")
         print(INTRO)
 
-    def _process_prices(self, data: dict):
+    def _process_prices(self, data: Dict):
         best_bid, best_ask = float(data["b"]), float(data["a"])
         self.updated = 0b00
         self._check_and_update_ask(best_ask)
@@ -78,10 +80,10 @@ class PublicBinance(AbstractAsyncApiConsumer):
     def on_connect(self):
         self._ws_connect_public()
 
-    def on_message(self, data: dict):
+    def on_message(self, data: Dict):
         self._process_prices(data)
 
-    def get_connection_uri(self) -> str:
+    def get_connection_uri(self) -> AnyStr:
         return self.uri
 
 
