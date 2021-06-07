@@ -1,3 +1,5 @@
+import logging
+from asyncio import AbstractEventLoop
 from typing import Dict, AnyStr
 
 import hashlib
@@ -13,11 +15,18 @@ SECRET = "OQ8JbgsHNd4Nq8MmLIHfsPkzQWgUajLwwSV4w3cD59EG72diAlLdTCkv1mrG6Maw"
 
 
 class BinanceAPI:
-    def __init__(self, loop):
+    def __init__(self, loop: AbstractEventLoop):
         self.offset = 0
         self.SECRET = SECRET
         self.loop = loop
         self.aio_session = self._init_aio_session()
+
+    async def init(self):
+        """
+
+        TODO: consider make this as classmethod to explicitly create API with initialization
+        """
+        await self._get_time_diff()
 
     def _init_aio_session(self) -> aiohttp.ClientSession:
         session = aiohttp.ClientSession(loop=self.loop, headers=self._get_headers())
@@ -39,10 +48,12 @@ class BinanceAPI:
 
     async def _get_account_info(self):
         params = {
-            "recvWindow": 5000,
-            "timestamp": int(time.time() * 1000 + self.offset),
+            "timestamp": self.__get_time() + self.offset,
         }
         pass
+
+    def __get_time(self) -> int:
+        return int(time.time() * 1000)
 
     async def _get(self, uri: AnyStr, data: Dict, signature_needed=False):
         if signature_needed:
@@ -50,6 +61,14 @@ class BinanceAPI:
         async with self.aio_session as session:
             async with session.get(uri, params=data) as resp:
                 return await resp.json()
+
+    def _calculate_offset(self, server_time) -> int:
+        return server_time - self.__get_time()
+
+    async def _get_time_diff(self):
+        server_time = (await self.get_server_time())["serverTime"]
+        self.offset = self._calculate_offset(server_time)
+        logging.info(f"Binance server time: {server_time}; Time offset: {self.offset}")
 
     @staticmethod
     def _get_headers() -> Dict:
