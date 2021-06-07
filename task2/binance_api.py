@@ -1,12 +1,13 @@
 import collections
 import logging
 from asyncio import AbstractEventLoop
-from typing import Dict, AnyStr
+from typing import Dict, AnyStr, Tuple
 
 import hashlib
 import hmac
 import time
 import aiohttp
+from multidict import CIMultiDictProxy
 
 API_VERSION = "v3"
 API_BASE_URL = "https://api.binance.com/api"
@@ -49,7 +50,7 @@ class BinanceAPI:
         )
         return m.hexdigest()
 
-    def _append_signature(self, data: Dict) -> Dict:
+    def _append_signature(self, data: Dict) -> Tuple[Dict, CIMultiDictProxy[str]]:
         data["signature"] = self._generate_signature(data)
         return data
 
@@ -59,7 +60,8 @@ class BinanceAPI:
         async with self.aio_session.get(uri, params=data) as resp:
             try:
                 json_response = await resp.json()
-                return json_response
+                headers = resp.headers
+                return json_response, headers
             except ValueError:
                 msg = await resp.text()
                 logging.critical(f"Invalid Response: {msg}")
@@ -68,7 +70,7 @@ class BinanceAPI:
         return server_time - self.__get_time()
 
     async def _get_time_diff(self):
-        server_time = (await self.get_server_time())["serverTime"]
+        server_time = (await self.get_server_time())[0]["serverTime"]
         self.offset = self._calculate_offset(server_time)
         logging.info(f"Binance server time: {server_time}; Time offset: {self.offset}")
 
