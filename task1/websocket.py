@@ -6,6 +6,8 @@ import websockets
 
 from task1.consumer import AbstractAsyncApiConsumer
 
+EXTRA_HEADERS = {"User-Agent": "Mozilla/5.0"}
+
 
 class WebSocketBase:
     def __init__(self, name: string, manager: AbstractAsyncApiConsumer):
@@ -21,7 +23,7 @@ class WebSocketBase:
     async def ws(self):
         self.web_socket = await websockets.connect(
             self.manager.get_connection_uri(),
-            extra_headers={"User-Agent": "Mozilla/5.0"},
+            extra_headers=EXTRA_HEADERS,
         )
         self.manager.on_connect()
         while True:

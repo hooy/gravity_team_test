@@ -7,6 +7,11 @@ from task1.consumer import AbstractAsyncApiConsumer
 from task1.websocket import WebSocketBase
 from math import inf
 
+# TODO: add URI builder
+WS_BTCUSDT_TICKER_URL = "wss://stream.binance.com:9443/ws/btcusdt@ticker"
+
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+INTRO = f"{'=' * 10}Connected to Binance!{'=' * 10}"
 
 class PublicBinance(AbstractAsyncApiConsumer):
     exchange = "binance"
@@ -26,9 +31,9 @@ class PublicBinance(AbstractAsyncApiConsumer):
 
     def _ws_connect_public(self):
         logging.info(f"_ws_connect_public {self.exchange}")
-        print(f"{'=' * 10}Connected to Binance!{'=' * 10}")
+        print(INTRO)
 
-    def _process_prices(self, data):
+    def _process_prices(self, data: dict):
         best_bid, best_ask = float(data["b"]), float(data["a"])
         self.updated = 0b00
         self._check_and_update_ask(best_ask)
@@ -36,17 +41,20 @@ class PublicBinance(AbstractAsyncApiConsumer):
         if not self.print_only_updates:
             self.print_current_best_prices()
         else:
-            if self.updated > 0:  # at least one is updated
+            if self._at_least_one_is_updated():
                 self.print_current_best_prices()
+
+    def _at_least_one_is_updated(self):
+        return self.updated > 0
 
     def print_current_best_prices(self):
         # TODO: consider to move bid/ask to own objects and hide all logic there
         bid, bid_time = self.highest_bid["price"], datetime.datetime.fromtimestamp(
             self.highest_bid["time"]
-        ).strftime("%Y-%m-%d %H:%M:%S")
+        ).strftime(TIME_FORMAT)
         ask, ask_time = self.lowest_ask["price"], datetime.datetime.fromtimestamp(
             self.lowest_ask["time"]
-        ).strftime("%Y-%m-%d %H:%M:%S")
+        ).strftime(TIME_FORMAT)
 
         print(f"Highest bid: {bid} at {bid_time}; Lowest ask: {ask} at {ask_time}")
 
@@ -68,7 +76,7 @@ class PublicBinance(AbstractAsyncApiConsumer):
     def on_connect(self):
         self._ws_connect_public()
 
-    def on_message(self, data):
+    def on_message(self, data: dict):
         self._process_prices(data)
 
     def get_connection_uri(self):
@@ -78,5 +86,5 @@ class PublicBinance(AbstractAsyncApiConsumer):
 if __name__ == "__main__":
     # logging.getLogger().setLevel(logging.DEBUG)
     # TODO: move this to config
-    uri = "wss://stream.binance.com:9443/ws/btcusdt@ticker"
-    binance = PublicBinance(uri, print_only_updates=True)
+    btcusdt_uri = WS_BTCUSDT_TICKER_URL
+    binance = PublicBinance(btcusdt_uri, print_only_updates=True)
