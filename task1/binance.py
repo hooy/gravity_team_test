@@ -2,6 +2,8 @@ import asyncio
 import datetime
 import logging
 import time
+from asyncio import AbstractEventLoop
+
 from task1.consumer import AbstractAsyncApiConsumer
 from task1.websocket import WebSocketBase
 from math import inf
@@ -44,7 +46,7 @@ class PublicBinance(AbstractAsyncApiConsumer):
             if self._at_least_one_is_updated():
                 self.print_current_best_prices()
 
-    def _at_least_one_is_updated(self):
+    def _at_least_one_is_updated(self) -> bool:
         return self.updated > 0
 
     def print_current_best_prices(self):
@@ -70,7 +72,7 @@ class PublicBinance(AbstractAsyncApiConsumer):
             self.highest_bid["price"] = best_bid
             self.highest_bid["time"] = time.time()
 
-    def get_loop(self):
+    def get_loop(self) -> AbstractEventLoop:
         return self.loop
 
     def on_connect(self):
@@ -79,7 +81,7 @@ class PublicBinance(AbstractAsyncApiConsumer):
     def on_message(self, data: dict):
         self._process_prices(data)
 
-    def get_connection_uri(self):
+    def get_connection_uri(self) -> str:
         return self.uri
 
 
