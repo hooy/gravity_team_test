@@ -23,7 +23,7 @@ class BinanceAPI:
         session = aiohttp.ClientSession(loop=self.loop, headers=self._get_headers())
         return session
 
-    def get_server_time(self):
+    async def get_server_time(self):
         return await self._get(uri=TIME_URL, data={})
 
     def _generate_signature(self, data: Dict) -> AnyStr:
@@ -44,11 +44,12 @@ class BinanceAPI:
         }
         pass
 
-    async def _get(self, uri: AnyStr, data: Dict):
-        signature = self._append_signature(data)
+    async def _get(self, uri: AnyStr, data: Dict, signature_needed=False):
+        if signature_needed:
+            data = self._append_signature(data)
         async with self.aio_session as session:
-            async with session.get(uri) as resp:
-                await resp.json()
+            async with session.get(uri, params=data) as resp:
+                return await resp.json()
 
     @staticmethod
     def _get_headers() -> Dict:

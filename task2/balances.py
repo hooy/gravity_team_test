@@ -5,7 +5,8 @@ from task2.binance_api import BinanceAPI
 
 async def main():
     binance_api = BinanceAPI(loop)
-    loop.run_until_complete(binance_api.get_server_time())
+    server_time = await binance_api.get_server_time()
+    print(server_time)
 
     # loop.run_until_complete(get_account_info(loop))
 
