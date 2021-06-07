@@ -49,17 +49,9 @@ class BinanceAPI:
         )
         return m.hexdigest()
 
-    @staticmethod
-    def _prepare_query_string(data: Dict) -> AnyStr:
-        ordered_data = collections.OrderedDict(sorted(data.items()))
-        return "&".join([f"{d[0]}={d[1]}" for d in ordered_data.items()])
-
     def _append_signature(self, data: Dict) -> Dict:
         data["signature"] = self._generate_signature(data)
         return data
-
-    def __get_time(self) -> int:
-        return int(time.time() * 1000)
 
     async def _get(self, uri: AnyStr, data: Dict, signature_needed=False):
         if signature_needed:
@@ -79,6 +71,15 @@ class BinanceAPI:
         server_time = (await self.get_server_time())["serverTime"]
         self.offset = self._calculate_offset(server_time)
         logging.info(f"Binance server time: {server_time}; Time offset: {self.offset}")
+
+    @staticmethod
+    def __get_time() -> int:
+        return int(time.time() * 1000)
+
+    @staticmethod
+    def _prepare_query_string(data: Dict) -> AnyStr:
+        ordered_data = collections.OrderedDict(sorted(data.items()))
+        return "&".join([f"{d[0]}={d[1]}" for d in ordered_data.items()])
 
     @staticmethod
     def _get_headers() -> Dict:
