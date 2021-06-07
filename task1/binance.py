@@ -13,6 +13,7 @@ WS_BTCUSDT_TICKER_URL = "wss://stream.binance.com:9443/ws/btcusdt@ticker"
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 INTRO = f"{'=' * 10}Connected to Binance!{'=' * 10}"
 
+
 class PublicBinance(AbstractAsyncApiConsumer):
     exchange = "binance"
 
